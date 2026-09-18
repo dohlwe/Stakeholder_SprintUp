@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SprintMail &ndash; Posteingang SprintUp AG</title>
+<style>
+:root{
+  --bg:#eef1f6;
+  --panel:#ffffff;
+  --ink:#16202e;
+  --ink-soft:#5a6779;
+  --line:#dde3ec;
+  --brand:#0f5ea8;
+  --brand-dark:#0a4477;
+  --accent:#e8590c;
+  --sel:#e7f0fa;
+  --unread:#0f5ea8;
+  --fs:16px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"Segoe UI",Roboto,-apple-system,Helvetica,Arial,sans-serif;
+  font-size:var(--fs);
+  color:var(--ink);
+  background:var(--bg);
+  overflow:hidden;
+}
+button{font-family:inherit}
+
+/* ---------- Kopfleiste ---------- */
+header{
+  display:flex;align-items:center;gap:.9em;
+  padding:.55em 1.1em;
+  background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%);
+  color:#fff;
+  box-shadow:0 2px 8px rgba(10,40,80,.25);
+  position:relative;z-index:5;
+}
+.logo{
+  display:flex;align-items:center;gap:.55em;
+  font-weight:700;letter-spacing:.02em;font-size:1.18em;
+}
+.logo .mark{
+  width:1.9em;height:1.9em;border-radius:.5em;
+  background:#fff;color:var(--brand);
+  display:grid;place-items:center;font-size:.85em;font-weight:800;
+}
+.logo small{display:block;font-weight:400;font-size:.6em;opacity:.85;letter-spacing:.06em;text-transform:uppercase}
+.searchbar{
+  flex:1;max-width:32em;
+  background:rgba(255,255,255,.18);
+  border-radius:.5em;padding:.42em .8em;
+  color:rgba(255,255,255,.8);font-size:.9em;
+}
+.tools{margin-left:auto;display:flex;align-items:center;gap:.4em}
+.tools button{
+  background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.28);
+  border-radius:.45em;padding:.4em .75em;font-size:.85em;cursor:pointer;
+}
+.tools button:hover{background:rgba(255,255,255,.3)}
+.tools button.on{background:#fff;color:var(--brand-dark);border-color:#fff;font-weight:600}
+.tools .grp{display:flex;gap:0}
+.tools .grp button{border-radius:0}
+.tools .grp button:first-child{border-radius:.45em 0 0 .45em}
+.tools .grp button:last-child{border-radius:0 .45em .45em 0;border-left:none}
+
+/* ---------- Grundraster ---------- */
+.app{display:grid;grid-template-columns:13.5em 25em 1fr;height:calc(100vh - 3.3em)}
+
+/* ---------- Ordner ---------- */
+nav{background:#f6f8fb;border-right:1px solid var(--line);padding:1em .7em;overflow:auto}
+.compose{
+  width:100%;background:var(--brand);color:#fff;border:none;border-radius:.5em;
+  padding:.7em;font-size:.95em;font-weight:600;cursor:default;margin-bottom:1.1em;
+  box-shadow:0 1px 3px rgba(15,94,168,.4);
+}
+nav .folder{
+  display:flex;align-items:center;gap:.6em;
+  padding:.5em .7em;border-radius:.45em;color:var(--ink-soft);font-size:.95em;
+}
+nav .folder.active{background:var(--sel);color:var(--brand-dark);font-weight:600}
+nav .folder .cnt{margin-left:auto;font-size:.85em;font-weight:700;color:var(--brand)}
+nav hr{border:none;border-top:1px solid var(--line);margin:1em .2em}
+nav .hint{font-size:.78em;color:var(--ink-soft);line-height:1.5;padding:0 .7em}
+
+/* ---------- Liste ---------- */
+.list{background:var(--panel);border-right:1px solid var(--line);overflow:auto}
+.list-head{
+  padding:.75em 1.1em;border-bottom:1px solid var(--line);
+  font-size:.8em;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft);
+  position:sticky;top:0;background:var(--panel);z-index:2;
+}
+.item{
+  display:grid;grid-template-columns:2.6em 1fr;gap:.75em;
+  padding:.8em 1.1em;border-bottom:1px solid var(--line);cursor:pointer;
+  border-left:4px solid transparent;
+}
+.item:hover{background:#f7f9fc}
+.item.active{background:var(--sel);border-left-color:var(--brand)}
+.avatar{
+  width:2.6em;height:2.6em;border-radius:50%;
+  display:grid;place-items:center;color:#fff;font-weight:700;font-size:.88em;
+}
+.item .from{font-weight:700;font-size:.95em;line-height:1.25;color:var(--ink)}
+.item.read .from{font-weight:500;color:var(--ink-soft)}
+.item .subj{font-size:.9em;margin-top:.15em;color:var(--ink)}
+.item.read .subj{color:var(--ink-soft)}
+.item .prev{font-size:.82em;color:var(--ink-soft);margin-top:.2em;
+  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.item .meta{display:flex;align-items:center;gap:.5em;margin-top:.35em}
+.dot{width:.55em;height:.55em;border-radius:50%;background:var(--unread);flex:none}
+.item.read .dot{background:transparent;border:1px solid var(--line)}
+.time{font-size:.78em;color:var(--ink-soft)}
+.tag{
+  font-size:.72em;font-weight:700;letter-spacing:.05em;
+  background:var(--accent);color:#fff;border-radius:.3em;padding:.1em .45em;
+}
+.att{font-size:.78em;color:var(--ink-soft)}
+
+/* ---------- Arbeitsauftrag-Fenster ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(10,32,50,.55);
+  display:grid;place-items:center;padding:1.5em;
+}
+.overlay[hidden]{display:none}
+.modal{
+  background:var(--panel);border-radius:.8em;max-width:36em;width:100%;
+  box-shadow:0 18px 50px rgba(8,25,45,.45);overflow:hidden;
+}
+.modal .mhead{
+  background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%);
+  color:#fff;padding:1.1em 1.5em;
+}
+.modal .mhead .kick{
+  font-size:.78em;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:#ffd0b0;margin-bottom:.25em;
+}
+.modal .mhead h2{margin:0;font-size:1.45em;line-height:1.25}
+.modal .mbody{padding:1.5em}
+.modal ol{margin:0;padding-left:1.4em;font-size:1.14em;line-height:1.65}
+.modal ol li{margin-bottom:.65em}
+.modal ol li:last-child{margin-bottom:0}
+.modal .mnote{
+  margin-top:1.4em;padding-top:1em;border-top:1px solid var(--line);
+  font-size:.9em;color:var(--ink-soft);line-height:1.55;
+}
+.modal .mfoot{padding:0 1.5em 1.5em;display:flex;justify-content:flex-end}
+.modal .mfoot button{
+  background:var(--brand);color:#fff;border:none;border-radius:.5em;
+  padding:.65em 1.6em;font-size:1em;font-weight:600;cursor:pointer;
+}
+.modal .mfoot button:hover{background:var(--brand-dark)}
+
+/* ---------- Lesebereich ---------- */
+.reader{overflow:auto;background:var(--panel);padding:0}
+.reader-inner{max-width:52em;margin:0 auto;padding:2em 2.4em 4em}
+.empty{height:100%;display:grid;place-items:center;color:var(--ink-soft);text-align:center;padding:2em}
+.empty .big{font-size:3em;opacity:.35;margin-bottom:.2em}
+.rsubj{font-size:1.5em;font-weight:700;line-height:1.3;margin:0 0 .8em}
+.rhead{display:flex;align-items:flex-start;gap:.9em;padding-bottom:1.1em;border-bottom:1px solid var(--line)}
+.rhead .avatar{width:3.2em;height:3.2em;font-size:1em}
+.rfrom{font-weight:700;font-size:1.05em}
+.rmail{font-size:.87em;color:var(--ink-soft)}
+.rto{font-size:.87em;color:var(--ink-soft);margin-top:.3em}
+.rdate{margin-left:auto;font-size:.85em;color:var(--ink-soft);white-space:nowrap}
+.rbody{font-size:1.06em;line-height:1.75;padding:1.4em 0 0;white-space:pre-line}
+.rsig{margin-top:1.6em;padding-top:1em;border-top:1px solid var(--line);font-size:.9em;color:var(--ink-soft);line-height:1.6;white-space:pre-line}
+.rbar{display:flex;gap:.5em;margin-top:1.6em}
+.rbar span{
+  border:1px solid var(--line);border-radius:.45em;padding:.45em .9em;
+  font-size:.88em;color:var(--ink-soft);background:#fbfcfe;
+}
+
+@media (max-width:1100px){
+  .app{grid-template-columns:1fr}
+  nav,.list{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="mark">SU</span>
+    <span>SprintMail<small>SprintUp AG &middot; Unternehmensleitung</small></span>
+  </div>
+  <div class="searchbar">Posteingang durchsuchen &hellip;</div>
+  <div class="tools">
+    <button id="btnTask" title="Arbeitsauftrag erneut anzeigen">Arbeitsauftrag</button>
+    <div class="grp">
+      <button id="btnMinus" title="Schrift kleiner">A&minus;</button>
+      <button id="btnPlus" title="Schrift größer">A+</button>
+    </div>
+    <button id="btnReset" title="Alle Nachrichten wieder als ungelesen markieren">Zurücksetzen</button>
+  </div>
+</header>
+
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+    <div class="mhead">
+      <div class="kick">Posteingang der SprintUp AG</div>
+      <h2 id="mtitle">Arbeitsauftrag</h2>
+    </div>
+    <div class="mbody">
+      <ol>
+        <li>Identifiziere die Anspruchsgruppe.</li>
+        <li>Erl&auml;utere sodann die zentrale Erwartung und m&ouml;gliche Einflussnahme der beteiligten Stakeholder.</li>
+      </ol>
+      <div class="mnote">Jede Gruppe bearbeitet die Nachricht, die im Postfach mit ihrem Buchstaben gekennzeichnet ist, sowie zwei weitere beliebig ausgewählte Mails.</div>
+    </div>
+    <div class="mfoot"><button id="btnClose">Zum Posteingang</button></div>
+  </div>
+</div>
+
+<div class="app">
+  <nav>
+    <button class="compose">&#9998;&nbsp; Neue Nachricht</button>
+    <div class="folder active"><span>&#128229;</span> Posteingang <span class="cnt" id="cntUnread">8</span></div>
+    <div class="folder"><span>&#9733;</span> Wichtig</div>
+    <div class="folder"><span>&#128228;</span> Gesendet</div>
+    <div class="folder"><span>&#128196;</span> Entw&uuml;rfe</div>
+    <div class="folder"><span>&#128465;</span> Papierkorb</div>
+    <hr>
+    <div class="hint">
+      <b>Ausgangslage</b><br>
+      Die SprintUp AG bringt den Laufschuh <b>SprintOne</b> auf den Markt.
+      Acht Nachrichten erreichen die Unternehmensleitung.
+    </div>
+  </nav>
+
+  <section class="list" id="list">
+    <div class="list-head">Posteingang &middot; 8 Nachrichten</div>
+  </section>
+
+  <section class="reader" id="reader">
+    <div class="empty">
+      <div>
+        <div class="big">&#128231;</div>
+        <div>W&auml;hlen Sie links eine Nachricht aus.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* =====================================================================
+   NACHRICHTEN
+   Zum Bearbeiten: einfach die Texte unten ändern. Reihenfolge = Anzeige.
+   ===================================================================== */
+const NACHRICHTEN = [
+ {
+  gruppe:"A",
+  von:"Betriebsrat der SprintUp AG",
+  mail:"betriebsrat@sprintup-ag.de",
+  farbe:"#2f6f4e",
+  zeit:"08:12",
+  datum:"Montag, 08:12 Uhr",
+  betreff:"Personalplanung für SprintOne",
+  text:"Sehr geehrte Damen und Herren,\n\nviele Kolleginnen und Kollegen begrüßen das neue Produkt. Für die geplante Stückzahl reichen die derzeitigen Schichten jedoch kaum aus. Wir erwarten einen nachvollziehbaren Personalplan, eine frühzeitige Abstimmung der Arbeitszeiten und Schulungen für die neue Produktionsanlage.\n\nBesonders die Beschäftigten in der Montage benötigen ausreichend Zeit, um sich mit den neuen Abläufen vertraut zu machen. Ohne eine tragfähige Vereinbarung können wir den zusätzlichen Schichten nicht zustimmen.",
+  sig:"Mit freundlichen Grüßen\nBetriebsrat der SprintUp AG\nWerk Neustadt"
+ },
+ {
+  gruppe:"B",
+  von:"MoveCapital Beteiligungs GmbH",
+  mail:"office@movecapital.de",
+  farbe:"#1f4e79",
+  zeit:"08:47",
+  datum:"Montag, 08:47 Uhr",
+  betreff:"Unterlagen zur Markteinführung",
+  text:"Sehr geehrter Vorstand,\n\nals Anteilseigner verfolgen wir die Entwicklung von SprintOne mit großem Interesse. Bitte legen Sie uns vor der nächsten Aufsichtsratssitzung die erwarteten Verkaufszahlen, den Kapitalbedarf und die wichtigsten Risiken vor.\n\nAußerdem möchten wir wissen, ab welcher Absatzmenge das Produkt voraussichtlich einen positiven Ergebnisbeitrag leistet. Über die Freigabe weiterer Mittel entscheiden wir nach Prüfung der Unterlagen.",
+  sig:"Mit freundlichen Grüßen\nMoveCapital Beteiligungs GmbH\nBeteiligungsmanagement"
+ },
+ {
+  gruppe:"C",
+  von:"Laufhaus Süd und Kundentestpanel",
+  mail:"einkauf@laufhaus-sued.de",
+  farbe:"#8a5a00",
+  zeit:"09:05",
+  datum:"Montag, 09:05 Uhr",
+  betreff:"Rückmeldungen zum SprintOne",
+  text:"Guten Tag,\n\nunsere Testkundinnen und Testkunden loben den Tragekomfort. Mehrfach wurden jedoch eine breitere Größenauswahl, verlässliche Liefertermine und eine längere Haltbarkeit der Sohle verlangt.\n\nEinige Testpersonen wünschen sich zudem genauere Informationen zur Passform, damit sie die richtige Größe auswählen können. Für eine große Vorbestellung benötigen wir verbindliche Angaben zu Preis, Größen und Lieferzeit.",
+  sig:"Freundliche Grüße\nLaufhaus Süd GmbH\nEinkauf und Kundentestpanel"
+ },
+ {
+  gruppe:"D",
+  von:"TexPro Components",
+  mail:"vertrieb@texpro-components.com",
+  farbe:"#6b3fa0",
+  zeit:"09:33",
+  datum:"Montag, 09:33 Uhr",
+  betreff:"Kapazitätsreservierung",
+  text:"Sehr geehrte Damen und Herren,\n\nwir können das Obermaterial für SprintOne ab November liefern. Für die Reservierung unserer Kapazitäten benötigen wir bis Monatsende eine verbindliche Mengenplanung und einen Vertrag über mindestens zwölf Monate.\n\nAuch die vorgesehenen Abruftermine sollten frühzeitig feststehen, da wir unsere Maschinenbelegung für das kommende Halbjahr planen. Bei kurzfristigen Änderungen können wir die bisher angebotenen Preise nicht garantieren.",
+  sig:"Mit freundlichen Grüßen\nTexPro Components\nVertrieb Industriekunden"
+ },
+ {
+  gruppe:"E",
+  von:"BayernBank Firmenkunden",
+  mail:"firmenkunden@bayernbank.de",
+  farbe:"#0f5ea8",
+  zeit:"10:14",
+  datum:"Montag, 10:14 Uhr",
+  betreff:"Finanzierung der Produktionsanlage",
+  text:"Sehr geehrte Damen und Herren,\n\ndie beantragte Kreditlinie über 4,5 Mio. Euro können wir erst nach Prüfung des Investitionsplans freigeben. Bitte reichen Sie Liquiditätsplanung, Sicherheiten und bestehende Lieferverträge ein.\n\nFür unsere Entscheidung benötigen wir außerdem eine Prognose, wie sich mögliche Verzögerungen beim Verkaufsstart auf die Rückzahlung auswirken würden. Die Konditionen hängen von unserer Einschätzung des Ausfallrisikos ab.",
+  sig:"Mit freundlichen Grüßen\nBayernBank AG\nFirmenkundenbetreuung"
+ },
+ {
+  gruppe:"F",
+  von:"Stadtverwaltung Neustadt",
+  mail:"bauamt@neustadt.de",
+  farbe:"#31708e",
+  zeit:"10:52",
+  datum:"Montag, 10:52 Uhr",
+  betreff:"Erweiterung des Produktionsstandorts",
+  text:"Sehr geehrte Damen und Herren,\n\nfür den geplanten Hallenanbau benötigen Sie eine Baugenehmigung. Bitte ergänzen Sie die Unterlagen um Verkehrsplanung, Stellplätze und den voraussichtlichen Personalbedarf.\n\nMehrere Anwohnerinnen und Anwohner haben bereits Fragen zum zusätzlichen Lieferverkehr gestellt. Die Stadt begrüßt neue Arbeitsplätze, muss aber die Auswirkungen auf das angrenzende Wohngebiet prüfen.",
+  sig:"Mit freundlichen Grüßen\nStadt Neustadt\nBauamt – Gewerbliche Bauvorhaben"
+ },
+ {
+  gruppe:"G",
+  von:"Verbraucherforum Aktiv",
+  mail:"redaktion@verbraucherforum-aktiv.org",
+  farbe:"#b03a2e",
+  zeit:"11:26",
+  datum:"Montag, 11:26 Uhr",
+  betreff:"Anfrage zu Produktangaben",
+  text:"Sehr geehrte Damen und Herren,\n\nvor der Markteinführung bitten wir um nachvollziehbare Nachweise zur Haltbarkeit und zu den beworbenen Produkteigenschaften.\n\nVon besonderem Interesse ist, unter welchen Bedingungen die angegebenen Testergebnisse zustande gekommen sind. Sollten Angaben unklar bleiben, werden wir Verbraucherinnen und Verbraucher in unserem Testbericht darauf hinweisen.",
+  sig:"Mit freundlichen Grüßen\nVerbraucherforum Aktiv e. V.\nRedaktion Produkttests"
+ },
+ {
+  gruppe:"H",
+  von:"Redaktion Wirtschaft regional",
+  mail:"redaktion@wirtschaft-regional.de",
+  farbe:"#4a4a4a",
+  zeit:"12:03",
+  datum:"Montag, 12:03 Uhr",
+  betreff:"Presseanfrage zu SprintOne",
+  text:"Sehr geehrte Damen und Herren,\n\nwir berichten kommende Woche über die neue Produktlinie. Bitte beantworten Sie unsere Fragen zu Produktionsstandort, Beschäftigtenzahl und Verkaufspreis bis Freitag.\n\nUnsere Leserinnen und Leser interessiert außerdem, ob für die Produktion neue Arbeitsplätze entstehen oder bestehende Stellen verlagert werden. Falls wir keine Stellungnahme erhalten, veröffentlichen wir den Artikel auf Grundlage der bereits vorliegenden Informationen.",
+  sig:"Mit freundlichen Grüßen\nWirtschaft regional\nRedaktion Unternehmen"
+ }
+];
+
+/* ===================== Programmlogik ===================== */
+const list=document.getElementById('list');
+const reader=document.getElementById('reader');
+const overlay=document.getElementById('overlay');
+const gelesen=new Array(NACHRICHTEN.length).fill(false);
+let aktiv=-1, fs=16;
+
+function initialen(name){
+  const stop=['der','die','das','und','für','von','am','im','ag','gmbh','e','v'];
+  let w=name.replace(/[^A-Za-zÄÖÜäöüß ]/g,'').trim().split(/\s+/)
+            .filter(x=>x && !stop.includes(x.toLowerCase()));
+  if(!w.length) w=[name];
+  return w.slice(0,2).map(x=>x[0]).join('').toUpperCase();
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function listeBauen(){
+  list.querySelectorAll('.item').forEach(e=>e.remove());
+  NACHRICHTEN.forEach((n,i)=>{
+    const d=document.createElement('div');
+    d.className='item'+(gelesen[i]?' read':'')+(i===aktiv?' active':'');
+    d.innerHTML=
+      '<div class="avatar" style="background:'+n.farbe+'">'+initialen(n.von)+'</div>'+
+      '<div>'+
+        '<div class="from">'+esc(n.von)+'</div>'+
+        '<div class="subj">'+esc(n.betreff)+'</div>'+
+        '<div class="prev">'+esc(n.text.split('\n').filter(Boolean)[1]||'')+'</div>'+
+        '<div class="meta"><span class="dot"></span>'+
+          '<span class="time">'+n.zeit+'</span>'+
+          '<span class="tag">Gruppe '+n.gruppe+'</span>'+
+        '</div>'+
+      '</div>';
+    d.onclick=()=>oeffnen(i);
+    list.appendChild(d);
+  });
+  document.getElementById('cntUnread').textContent=gelesen.filter(x=>!x).length;
+}
+
+function oeffnen(i){
+  aktiv=i; gelesen[i]=true;
+  const n=NACHRICHTEN[i];
+  reader.innerHTML=
+   '<div class="reader-inner">'+
+    '<h1 class="rsubj">'+esc(n.betreff)+'</h1>'+
+    '<div class="rhead">'+
+      '<div class="avatar" style="background:'+n.farbe+'">'+initialen(n.von)+'</div>'+
+      '<div>'+
+        '<div class="rfrom">'+esc(n.von)+'</div>'+
+        '<div class="rmail">&lt;'+esc(n.mail)+'&gt;</div>'+
+        '<div class="rto">an: vorstand@sprintup-ag.de</div>'+
+      '</div>'+
+      '<div class="rdate">'+n.datum+'</div>'+
+    '</div>'+
+    '<div class="rbody">'+esc(n.text)+'</div>'+
+    '<div class="rsig">'+esc(n.sig)+'</div>'+
+    '<div class="rbar"><span>&#8617; Antworten</span><span>&#8618; Weiterleiten</span><span>&#9733; Kennzeichnen</span></div>'+
+   '</div>';
+  reader.scrollTop=0;
+  listeBauen();
+}
+
+function auftragZeigen(on){
+  overlay.hidden = !on;
+  document.getElementById('btnTask').classList.toggle('on', on);
+}
+document.getElementById('btnTask').onclick=()=>auftragZeigen(true);
+document.getElementById('btnClose').onclick=()=>auftragZeigen(false);
+overlay.addEventListener('click',e=>{ if(e.target===overlay) auftragZeigen(false); });
+document.getElementById('btnPlus').onclick=()=>setFs(fs+2);
+document.getElementById('btnMinus').onclick=()=>setFs(fs-2);
+function setFs(v){fs=Math.min(30,Math.max(12,v));document.documentElement.style.setProperty('--fs',fs+'px');}
+document.getElementById('btnReset').onclick=()=>{
+  gelesen.fill(false); aktiv=-1;
+  reader.innerHTML='<div class="empty"><div><div class="big">&#128231;</div><div>Wählen Sie links eine Nachricht aus.</div></div></div>';
+  listeBauen();
+};
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){oeffnen(Math.min(NACHRICHTEN.length-1,aktiv+1));e.preventDefault();}
+  if(e.key==='ArrowUp'){oeffnen(Math.max(0,aktiv-1));e.preventDefault();}
+  if(e.key==='Escape'){auftragZeigen(false);}
+  if(e.key==='a'){auftragZeigen(overlay.hidden);}
+});
+
+listeBauen(); auftragZeigen(true);
+</script>
+</body>
+</html>
