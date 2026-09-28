@@ -68,7 +68,7 @@ header{
 .tools .grp button:last-child{border-radius:0 .45em .45em 0;border-left:none}
 
 /* ---------- Grundraster ---------- */
-.app{display:grid;grid-template-columns:13.5em 25em 1fr;height:calc(100vh - 3.3em)}
+.app{display:grid;grid-template-columns:13.5em 25em 1fr;height:calc(100vh - 3.3em);height:calc(100dvh - 3.3em)}
 
 /* ---------- Ordner ---------- */
 nav{background:#f6f8fb;border-right:1px solid var(--line);padding:1em .7em;overflow:auto}
@@ -175,9 +175,47 @@ nav .hint{font-size:.78em;color:var(--ink-soft);line-height:1.5;padding:0 .7em}
   font-size:.88em;color:var(--ink-soft);background:#fbfcfe;
 }
 
-@media (max-width:1100px){
+/* ---------- Zurueck-Leiste (nur schmale Bildschirme) ---------- */
+.backbar{display:none}
+.backbar button{
+  display:flex;align-items:center;gap:.5em;
+  background:none;border:none;color:var(--brand);
+  font-size:1em;font-weight:600;padding:.7em 0;cursor:pointer;
+}
+
+/* ---------- Tablet quer / kleines Notebook: zwei Spalten ---------- */
+@media (max-width:1099px){
+  .app{grid-template-columns:20.5em 1fr}
+  nav{display:none}
+  .searchbar{display:none}
+  .reader-inner{padding:1.6em 1.8em 3em}
+}
+
+/* ---------- Tablet hoch und Smartphone: eine Spalte, zwei Ansichten ---------- */
+@media (max-width:759px){
   .app{grid-template-columns:1fr}
-  nav,.list{display:none}
+  nav{display:none}
+  .list,.reader{grid-column:1;grid-row:1}
+  .reader{display:none}
+  body.reading .list{display:none}
+  body.reading .reader{display:block}
+  .backbar{
+    display:block;position:sticky;top:0;z-index:3;
+    background:var(--panel);border-bottom:1px solid var(--line);
+    padding:0 1.3em;margin:0 -1.3em 1.1em;
+  }
+  .reader-inner{padding:0 1.3em 3em}
+  .rsubj{font-size:1.3em;margin-top:.2em}
+  .rhead{flex-wrap:wrap}
+  .rdate{margin-left:0;width:100%;padding-top:.4em}
+  .rbar{flex-wrap:wrap}
+  #btnReset{display:none}
+  header{padding:.5em .7em}
+  .logo{font-size:1em}
+  .logo small{display:none}
+  .tools button{padding:.45em .65em;font-size:.8em}
+  .item{padding:.95em .9em}
+  .modal ol{font-size:1.05em}
 }
 </style>
 </head>
@@ -386,6 +424,7 @@ function oeffnen(i){
   const n=NACHRICHTEN[i];
   reader.innerHTML=
    '<div class="reader-inner">'+
+    '<div class="backbar"><button type="button" onclick="zurueck()">&#8592;&nbsp; Posteingang</button></div>'+
     '<h1 class="rsubj">'+esc(n.betreff)+'</h1>'+
     '<div class="rhead">'+
       '<div class="avatar" style="background:'+n.farbe+'">'+initialen(n.von)+'</div>'+
@@ -401,6 +440,7 @@ function oeffnen(i){
     '<div class="rbar"><span>&#8617; Antworten</span><span>&#8618; Weiterleiten</span><span>&#9733; Kennzeichnen</span></div>'+
    '</div>';
   reader.scrollTop=0;
+  document.body.classList.add('reading');
   listeBauen();
 }
 
@@ -414,19 +454,22 @@ overlay.addEventListener('click',e=>{ if(e.target===overlay) auftragZeigen(false
 document.getElementById('btnPlus').onclick=()=>setFs(fs+2);
 document.getElementById('btnMinus').onclick=()=>setFs(fs-2);
 function setFs(v){fs=Math.min(30,Math.max(12,v));document.documentElement.style.setProperty('--fs',fs+'px');}
+function zurueck(){ document.body.classList.remove('reading'); }
 document.getElementById('btnReset').onclick=()=>{
-  gelesen.fill(false); aktiv=-1;
+  gelesen.fill(false); aktiv=-1; zurueck();
   reader.innerHTML='<div class="empty"><div><div class="big">&#128231;</div><div>Wählen Sie links eine Nachricht aus.</div></div></div>';
   listeBauen();
 };
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'){oeffnen(Math.min(NACHRICHTEN.length-1,aktiv+1));e.preventDefault();}
   if(e.key==='ArrowUp'){oeffnen(Math.max(0,aktiv-1));e.preventDefault();}
-  if(e.key==='Escape'){auftragZeigen(false);}
+  if(e.key==='Escape'){auftragZeigen(false); zurueck();}
   if(e.key==='a'){auftragZeigen(overlay.hidden);}
 });
 
 listeBauen(); auftragZeigen(true);
 </script>
 </body>
+</html>
+
 </html>
